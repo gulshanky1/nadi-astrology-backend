@@ -13,7 +13,7 @@ dotenv.config();
 const app = express();
 
 // ✅ CORS - allow localhost:5173 and 5174
-const allowedOrigins = ["https://nadi-astrology.com"];
+const allowedOrigins = "https://nadi-astrology.com";
 
 app.use(
   cors({
