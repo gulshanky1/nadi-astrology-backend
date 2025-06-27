@@ -94,6 +94,7 @@ export const verifyAppointmentPayment = async (req, res) => {
         <p><strong>Name:</strong> ${appointmentData.name}</p>
         <p><strong>Email:</strong> ${appointmentData.email}</p>
         <p><strong>DOB:</strong> ${appointmentData.dob}</p>
+        <p><strong>Birth Place:</strong> ${appointmentData.birthPlace}</p>
         <p><strong>Mobile:</strong> ${appointmentData.mobile}</p>
         <p><strong>Birth Time:</strong> ${appointmentData.birthTime}</p>
         <p><strong>Country:</strong> ${appointmentData.country}</p>
