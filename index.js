@@ -13,7 +13,7 @@ dotenv.config();
 const app = express();
 
 // ✅ CORS - allow localhost:5173 and 5174
-const allowedOrigins = "https://nadi-astrology.com";
+const allowedOrigins = ["https://nadi-astrology.com"];
 
 app.use(
   cors({
@@ -35,7 +35,7 @@ app.options("*", cors());
 // ✅ Middleware
 app.use(express.json());
 app.use(helmet());
-
+app.set("trust proxy", 1);
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
