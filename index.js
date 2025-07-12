@@ -26,6 +26,7 @@ app.use(
       }
     },
     credentials: true,
+    exposedHeaders: ["x-rtb-fingerprint-id"],
   })
 );
 
