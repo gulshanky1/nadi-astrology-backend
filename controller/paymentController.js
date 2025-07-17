@@ -10,6 +10,17 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+// ✅ Nodemailer transporter with debugging
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  logger: true,  // Enable detailed logs
+  debug: true,
+});
+
 // === Order Creation Handler ===
 export const createOrder = async (req, res) => {
   try {
@@ -31,17 +42,10 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// ✅ Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
 // === Payment Verification Handler ===
 export const verifyPayment = async (req, res) => {
+  console.log("🔍 Incoming payment verification data:", req.body);
+
   const {
     razorpay_order_id,
     razorpay_payment_id,
@@ -53,6 +57,7 @@ export const verifyPayment = async (req, res) => {
 
   // ⚠️ Basic validation
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    console.warn("⚠️ Missing required payment verification fields.");
     return res.status(400).json({ error: "Missing payment verification parameters" });
   }
 
@@ -68,6 +73,25 @@ export const verifyPayment = async (req, res) => {
   }
 
   console.log("✅ Signature verified. Preparing to send emails...");
+
+  // ✅ Extra safety: check userDetails and email
+  if (!userDetails || !userDetails.email) {
+    console.error("❌ userDetails or email is missing. Cannot send email.");
+    return res.status(400).json({ error: "Missing user details or email" });
+  }
+
+  // 🧪 Test email to verify sending works from here
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: process.env.CONTACT_RECEIVER_EMAIL,
+      subject: "🧪 Test email from verifyPayment",
+      text: "This confirms that email sending works from verifyPayment controller.",
+    });
+    console.log("🧪 Test email sent successfully");
+  } catch (err) {
+    console.error("❌ Test email failed:", err.stack);
+  }
 
   // === Email to Service Provider ===
   const providerMail = {
@@ -114,17 +138,18 @@ Razorpay Order ID: ${razorpay_order_id}
       <h2>Thank you, ${userDetails.fullName}!</h2>
       <p>Your booking has been successfully placed and payment received.</p>
       <p>Our astrologer will connect with you within <strong>72 hours</strong>.</p>
-      <p>We appreciate your trust in us.</p>
       <br/>
       <p>Warm regards,<br/>Umang Taneja's Team</p>
     `,
   };
 
-  // ✅ Send emails
+  // ✅ Send both emails
   try {
+    console.log("➡️ Sending email to provider...");
     const providerResponse = await transporter.sendMail(providerMail);
     console.log("📤 Email to service provider sent:", providerResponse.response);
 
+    console.log("➡️ Sending email to user...");
     const userResponse = await transporter.sendMail(userMail);
     console.log("📤 Email to user sent:", userResponse.response);
 
