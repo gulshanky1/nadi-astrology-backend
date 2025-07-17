@@ -10,21 +10,26 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Nodemailer transporter with debugging
+// ✅ Nodemailer transporter with debug enabled
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  logger: true,  // Enable detailed logs
+  logger: true,
   debug: true,
 });
 
 // === Order Creation Handler ===
 export const createOrder = async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, ...formDetails } = req.body;
+
+    // 🔍 Log form and payment details
+    console.log("🟡 New Pay Now request received:");
+    console.log("Form Details:", formDetails);
+    console.log("Amount:", amount);
 
     const options = {
       amount: amount * 100,
@@ -33,7 +38,11 @@ export const createOrder = async (req, res) => {
     };
 
     const order = await razorpay.orders.create(options);
-    console.log("🧾 Order created successfully:", order);
+    console.log("✅ Razorpay Order created:", {
+      id: order.id,
+      amount: order.amount,
+      status: order.status,
+    });
 
     res.status(201).json({ order });
   } catch (err) {
@@ -44,7 +53,7 @@ export const createOrder = async (req, res) => {
 
 // === Payment Verification Handler ===
 export const verifyPayment = async (req, res) => {
-  console.log("🔍 Incoming payment verification data:", req.body);
+  console.log("🔍 Incoming payment verification payload:", req.body);
 
   const {
     razorpay_order_id,
@@ -55,10 +64,14 @@ export const verifyPayment = async (req, res) => {
     totalAmount,
   } = req.body;
 
-  // ⚠️ Basic validation
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-    console.warn("⚠️ Missing required payment verification fields.");
+    console.warn("⚠️ Missing required Razorpay parameters.");
     return res.status(400).json({ error: "Missing payment verification parameters" });
+  }
+
+  if (!userDetails || !userDetails.email) {
+    console.error("❌ Missing userDetails or email.");
+    return res.status(400).json({ error: "Missing user details or email" });
   }
 
   // ✅ Signature verification
@@ -68,30 +81,11 @@ export const verifyPayment = async (req, res) => {
     .digest("hex");
 
   if (generated_signature !== razorpay_signature) {
-    console.warn("⚠️ Signature mismatch. Payment not verified.");
+    console.warn("⚠️ Signature mismatch.");
     return res.status(400).json({ error: "Invalid payment signature" });
   }
 
-  console.log("✅ Signature verified. Preparing to send emails...");
-
-  // ✅ Extra safety: check userDetails and email
-  if (!userDetails || !userDetails.email) {
-    console.error("❌ userDetails or email is missing. Cannot send email.");
-    return res.status(400).json({ error: "Missing user details or email" });
-  }
-
-  // 🧪 Test email to verify sending works from here
-  try {
-    await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: process.env.CONTACT_RECEIVER_EMAIL,
-      subject: "🧪 Test email from verifyPayment",
-      text: "This confirms that email sending works from verifyPayment controller.",
-    });
-    console.log("🧪 Test email sent successfully");
-  } catch (err) {
-    console.error("❌ Test email failed:", err.stack);
-  }
+  console.log("✅ Payment signature verified. Preparing emails...");
 
   // === Email to Service Provider ===
   const providerMail = {
@@ -106,13 +100,11 @@ Name: ${userDetails.fullName}
 Email: ${userDetails.email}
 Mobile: ${userDetails.countryCode} ${userDetails.number}
 Date of Birth: ${userDetails.dob}
-Birth Time: ${userDetails.birthHour} ${userDetails.birthMinute}
+Birth Time: ${userDetails.birthHour}:${userDetails.birthMinute}
 Birth Place: ${userDetails.birthPlace}
 Birth Country: ${userDetails.birthCountry}
-
 Address: ${userDetails.address}, ${userDetails.city}, ${userDetails.postalCode}
 Current Country: ${userDetails.currentCountry}
-
 Any Questions: ${userDetails.questions || "N/A"}
 Comments / Past Life Events: ${userDetails.comments || "N/A"}
 
@@ -123,7 +115,6 @@ ${cartItems.map(
 ).join("\n")}
 
 💰 Total Amount: ₹${totalAmount}
-
 Razorpay Payment ID: ${razorpay_payment_id}
 Razorpay Order ID: ${razorpay_order_id}
     `,
@@ -143,15 +134,15 @@ Razorpay Order ID: ${razorpay_order_id}
     `,
   };
 
-  // ✅ Send both emails
+  // ✅ Send Emails
   try {
-    console.log("➡️ Sending email to provider...");
+    console.log("📤 Sending email to provider...");
     const providerResponse = await transporter.sendMail(providerMail);
-    console.log("📤 Email to service provider sent:", providerResponse.response);
+    console.log("✅ Provider email sent:", providerResponse.response);
 
-    console.log("➡️ Sending email to user...");
+    console.log("📤 Sending email to user...");
     const userResponse = await transporter.sendMail(userMail);
-    console.log("📤 Email to user sent:", userResponse.response);
+    console.log("✅ User email sent:", userResponse.response);
 
     res.status(200).json({ message: "Payment verified and emails sent." });
   } catch (err) {
