@@ -24,11 +24,9 @@ const transporter = nodemailer.createTransport({
 // === Order Creation Handler ===
 export const createOrder = async (req, res) => {
   try {
-    const { amount, ...formDetails } = req.body;
-
-    // 🔍 Log form and payment details
     console.log("🟡 New Pay Now request received:");
     console.log("Form Details:", formDetails);
+
     console.log("Amount:", amount);
 
     const options = {
@@ -66,7 +64,9 @@ export const verifyPayment = async (req, res) => {
 
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
     console.warn("⚠️ Missing required Razorpay parameters.");
-    return res.status(400).json({ error: "Missing payment verification parameters" });
+    return res
+      .status(400)
+      .json({ error: "Missing payment verification parameters" });
   }
 
   if (!userDetails || !userDetails.email) {
@@ -109,10 +109,12 @@ Any Questions: ${userDetails.questions || "N/A"}
 Comments / Past Life Events: ${userDetails.comments || "N/A"}
 
 🛒 Cart Items:
-${cartItems.map(
-  (item) =>
-    `• ${item.name} x${item.quantity} = ₹${item.price * item.quantity}`
-).join("\n")}
+${cartItems
+  .map(
+    (item) =>
+      `• ${item.name} x${item.quantity} = ₹${item.price * item.quantity}`
+  )
+  .join("\n")}
 
 💰 Total Amount: ₹${totalAmount}
 Razorpay Payment ID: ${razorpay_payment_id}
