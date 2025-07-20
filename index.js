@@ -12,12 +12,15 @@ dotenv.config();
 
 const app = express();
 
-
-const allowedOrigins = ["https://nadi-astrology.com","https://www.nadi-astrology.com"];
+const allowedOrigins = [
+  "https://nadi-astrology.com",
+  "https://www.nadi-astrology.com",
+];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      console.log("🌐 Request Origin:", origin);
       // allow requests with no origin like Postman or curl
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -29,10 +32,6 @@ app.use(
     exposedHeaders: ["x-rtb-fingerprint-id"],
   })
 );
-app.use((req, res, next) => {
-  console.log("🌐 Request Origin:", req.headers.origin);
-  next();
-});
 
 // Handle preflight OPTIONS requests
 // app.options("*", cors());
