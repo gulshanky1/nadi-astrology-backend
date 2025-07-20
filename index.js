@@ -29,6 +29,10 @@ app.use(
     exposedHeaders: ["x-rtb-fingerprint-id"],
   })
 );
+app.use((req, res, next) => {
+  console.log("🌐 Request Origin:", req.headers.origin);
+  next();
+});
 
 // Handle preflight OPTIONS requests
 // app.options("*", cors());
