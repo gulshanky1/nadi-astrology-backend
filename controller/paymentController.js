@@ -50,7 +50,6 @@ export const createOrder = async (req, res) => {
   }
 };
 
-
 // === Payment Verification Handler ===
 export const verifyPayment = async (req, res) => {
   console.log("🔍 Incoming payment verification payload:", req.body);
@@ -70,7 +69,7 @@ export const verifyPayment = async (req, res) => {
       .status(400)
       .json({ error: "Missing payment verification parameters" });
   }
-
+  console.log("🔍 Email received in backend:", userDetails?.email);
   if (!userDetails || !userDetails.email) {
     console.error("❌ Missing userDetails or email.");
     return res.status(400).json({ error: "Missing user details or email" });
