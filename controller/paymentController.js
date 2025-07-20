@@ -24,9 +24,10 @@ const transporter = nodemailer.createTransport({
 // === Order Creation Handler ===
 export const createOrder = async (req, res) => {
   try {
+    const { amount, ...formDetails } = req.body;
+
     console.log("🟡 New Pay Now request received:");
     console.log("Form Details:", formDetails);
-
     console.log("Amount:", amount);
 
     const options = {
@@ -48,6 +49,7 @@ export const createOrder = async (req, res) => {
     res.status(500).json({ error: "Failed to create Razorpay order" });
   }
 };
+
 
 // === Payment Verification Handler ===
 export const verifyPayment = async (req, res) => {
