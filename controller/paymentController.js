@@ -51,8 +51,7 @@ export const createOrder = async (req, res) => {
 };
 
 // === Payment Verification Handler ===
-import crypto from "crypto";
-import transporter from "../config/nodemailer.js";
+
 
 export const verifyPayment = async (req, res) => {
   console.log("🔍 Incoming payment verification payload:", req.body);
