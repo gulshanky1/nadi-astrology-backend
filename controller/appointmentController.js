@@ -176,10 +176,8 @@ transporter.verify((error) => {
 export const createAppointmentOrder = async (req, res) => {
   try {
     console.log("🟡 Raw Request Body full:", JSON.stringify(req.body, null, 2));
-
-
-
-    // console.log("Details:", formDetails);
+    const { amount } = req.body;
+    console.log("Details:", appointmentData);
     const order = await razorpay.orders.create({
       amount: amount * 100,
       currency: "INR",
