@@ -175,7 +175,8 @@ transporter.verify((error) => {
 // === Create Appointment Order ===
 export const createAppointmentOrder = async (req, res) => {
   try {
-    const { amount, formDetails } = req.body;
+    console.log("🟡 Raw Request Body:", JSON.stringify(req.body, null, 2));
+
 
 
     console.log("Details:", formDetails);
