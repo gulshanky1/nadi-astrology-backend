@@ -24,9 +24,7 @@ const transporter = nodemailer.createTransport({
 // === Order Creation Handler ===
 export const createOrder = async (req, res) => {
   try {
-    console.log("🟡 Raw Request Body details:", JSON.stringify(req.body, null, 2));
-
-
+    const { amount, ...formDetails } = req.body;
 
     console.log("🟡 New Pay Now request received:");
     console.log("Form Details:", formDetails);
