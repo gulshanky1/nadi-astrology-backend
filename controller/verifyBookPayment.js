@@ -55,6 +55,8 @@ export const verifyBookPayment = async (req, res) => {
     book,
   } = req.body;
 
+  console.log(userDetails);
+
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
     return res.status(400).json({ error: "Missing payment verification parameters" });
   }
@@ -109,6 +111,7 @@ export const verifyBookPayment = async (req, res) => {
     return res.status(200).json({ message: "Book payment verified and emails sent." });
   } catch (err) {
     console.error("❌ Email sending failed:", err);
+    console.log("email is not send ", err );
     return res.status(500).json({ error: "Payment verified but email sending failed." });
   }
 };
