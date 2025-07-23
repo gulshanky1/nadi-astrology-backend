@@ -175,7 +175,8 @@ transporter.verify((error) => {
 // === Create Appointment Order ===
 export const createAppointmentOrder = async (req, res) => {
   try {
-    const { amount, ...formDetails } = req.body;
+    const { amount, formDetails } = req.body;
+
 
     console.log("Details:", formDetails);
     const order = await razorpay.orders.create({
