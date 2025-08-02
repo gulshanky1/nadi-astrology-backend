@@ -70,6 +70,7 @@ export const verifyBookPayment = async (req, res) => {
     return res.status(400).json({ error: "Invalid payment signature" });
   }
 
+  // ✅ Payment is verified - now try to send emails
   try {
     const providerMail = {
       from: process.env.SMTP_USER,
@@ -99,19 +100,32 @@ export const verifyBookPayment = async (req, res) => {
         <h2>Thank you, ${userDetails.name}!</h2>
         <p>Your book order has been successfully placed and paid.</p>
         <p><strong>Book:</strong> ${book.name}</p>
-        <p>We will ship your order soon. You’ll receive updates shortly.</p>
+        <p>We will ship your order soon. You'll receive updates shortly.</p>
         <br/>
         <p>Warm regards,<br/>Umang Taneja's Team</p>
       `,
     };
 
-    await transporter.sendMail(providerMail);
-    await transporter.sendMail(userMail);
+    await Promise.all([
+      transporter.sendMail(providerMail),
+      transporter.sendMail(userMail)
+    ]);
 
-    return res.status(200).json({ message: "Book payment verified and emails sent." });
+    console.log("✅ Payment verified and emails sent successfully");
+    return res.status(200).json({ 
+      success: true,
+      message: "Book payment verified and emails sent." 
+    });
+
   } catch (err) {
     console.error("❌ Email sending failed:", err);
-    console.log("email is not send ", err );
-    return res.status(500).json({ error: "Payment verified but email sending failed." });
+    
+    // ✅ Still return success since payment is verified
+    return res.status(200).json({ 
+      success: true,
+      message: "Payment verified successfully",
+      emailStatus: "failed"
+    });
   }
 };
+

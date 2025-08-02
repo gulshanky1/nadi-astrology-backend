@@ -15,7 +15,8 @@ const app = express();
 const allowedOrigins = [
   "https://nadi-astrology.com",
   "https://www.nadi-astrology.com",
-  "http://localhost:5173"
+  "http://localhost:5173",
+  "http://www.nadi-astrology.com"
 ];
 
 app.use(
