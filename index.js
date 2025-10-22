@@ -16,14 +16,14 @@ const allowedOrigins = [
   "https://nadi-astrology.com",
   "https://www.nadi-astrology.com",
   "http://localhost:5173",
-  "http://www.nadi-astrology.com"
+  "http://www.nadi-astrology.com",
 ];
 
+// ✅ Enable CORS for allowed origins and preflight requests
 app.use(
   cors({
     origin: function (origin, callback) {
       console.log("🌐 Request Origin:", origin);
-      // allow requests with no origin like Postman or curl
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -35,8 +35,8 @@ app.use(
   })
 );
 
-// Handle preflight OPTIONS requests
-// app.options("*", cors());
+// ✅ Handle preflight OPTIONS requests globally
+app.options("*", cors());
 
 // ✅ Middleware
 app.use(express.json());
@@ -49,6 +49,24 @@ app.use(
     max: 100,
   })
 );
+
+// ✅ Manually set headers to make sure CORS works for all routes
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Requested-With"
+  );
+  // Handle OPTIONS request quickly
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // ✅ Routes
 app.use("/api/payment", paymentRoutes);
